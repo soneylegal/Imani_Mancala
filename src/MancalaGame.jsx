@@ -164,6 +164,12 @@ const MancalaGame = () => {
     setPlayerInputs(playerNames);
   };
 
+  const showHelp = () => {
+    setInfoMessage(
+      'Dica: clique em uma cavidade do seu lado para semear as sementes. Capture quando a última cair em uma casa vazia do seu lado.'
+    );
+  };
+
   const handleInputChange = (player, value) => {
     setPlayerInputs((prev) => ({ ...prev, [player]: value }));
   };
@@ -194,13 +200,13 @@ const MancalaGame = () => {
   return (
     <div className="mancala-shell">
       <h1>Mancala</h1>
-      <p className="subtitle">Jogo clássico com regras de captura e fim de jogo automático.</p>
+      <p className="subtitle">De origem africana e com ricas variações, o Mancala nos ensina que a vida é um fascinante exercício de semeadura. Mais do que um jogo, é uma lição sobre como cultivar e distribuir nossos recursos e essência para que, ao final do ciclo, possamos colher os melhores frutos.</p>
 
       {!started ? (
         <div className="startup-screen">
           <div className="startup-card">
             <h2>Bem-vindo ao Mancala</h2>
-            <p>Escolha os nomes dos jogadores e revise as regras antes de começar.</p>
+            <p className="subtitle">Escolha os nomes dos jogadores e revise as regras antes de começar.</p>
 
             <div className="input-group">
               <label htmlFor="player1">Seu nome</label>
@@ -300,6 +306,14 @@ const MancalaGame = () => {
           </div>
 
           <div className="controls">
+            <button className="help-button" type="button" onClick={showHelp}>
+              <span className="button-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm.25 14.4a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Zm1.62-5.6c0 .7-.5 1-1.3 1h-.3v.8h-.95v-.9c.5-.1 1-.3 1.3-.7.3-.4.4-.8.4-1.3 0-.9-.6-1.4-1.4-1.4-.7 0-1.3.3-1.6.8l-.9-.5c.4-.8 1.2-1.3 2.6-1.3 1.4 0 2.5.9 2.5 2.3Z" />
+                </svg>
+              </span>
+              Ajuda
+            </button>
             <button className="ghost-button" onClick={goToStart}>
               Voltar à tela inicial
             </button>
