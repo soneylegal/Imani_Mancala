@@ -4,6 +4,11 @@ node_modules/
 # Build/Produção (Arquivos gerados automaticamente)
 dist/
 build/
+web-build/
+
+# Expo / React Native
+.expo/
+.expo-shared/
 
 # Logs e erros
 npm-debug.log*
