@@ -17,6 +17,7 @@ const PLAYER1_PITS = [0, 1, 2, 3, 4, 5];
 const PLAYER2_PITS = [7, 8, 9, 10, 11, 12];
 const PLAYER1_MANCALA = 6;
 const PLAYER2_MANCALA = 13;
+const AI_API_BASE_URL = process.env.EXPO_PUBLIC_AI_API_URL || 'http://localhost:8787';
 
 const shadow = Platform.select({
   ios: {
@@ -114,11 +115,6 @@ const MancalaGame = () => {
     return true;
   };
 
-  const normalizeGroqContent = (content) => {
-    if (!content) return '';
-    return content.replace(/```json/gi, '').replace(/```/g, '').trim();
-  };
-
   const selectFallbackAIMove = (boardState) => {
     const available = getAvailableMoves(2, boardState);
     if (available.length === 0) return null;
@@ -139,42 +135,21 @@ const MancalaGame = () => {
     }, available[0]);
   };
 
-  const getGroqMove = async (boardState) => {
+  const getAIMoveFromBackend = async (boardState) => {
     const availableMoves = getAvailableMoves(2, boardState);
     if (availableMoves.length === 0) return null;
 
-    const apiKey = process.env.EXPO_PUBLIC_GROQ_API_KEY;
-    if (!apiKey) {
-      return null;
-    }
-
-    const payload = {
-      model: 'llama-3.1-8b-instant',
-      temperature: 0,
-      max_tokens: 60,
-      messages: [
-        {
-          role: 'system',
-          content:
-            'Voce e uma IA de Mancala e deve responder somente JSON valido no formato {"pitIndex": numero}. Nao inclua explicacoes.',
-        },
-        {
-          role: 'user',
-          content: `Escolha a melhor jogada para o Jogador 2 no tabuleiro ${JSON.stringify(
-            boardState
-          )}. Casas validas para jogar: ${JSON.stringify(availableMoves)}.`,
-        },
-      ],
-    };
-
     try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const response = await fetch(`${AI_API_BASE_URL}/api/ai/move`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          board: boardState,
+          currentPlayer: 2,
+          availableMoves,
+        }),
       });
 
       if (!response.ok) {
@@ -182,17 +157,7 @@ const MancalaGame = () => {
       }
 
       const data = await response.json();
-      const rawContent = data?.choices?.[0]?.message?.content;
-  const cleanContent = normalizeGroqContent(rawContent);
-
-      let suggestedIndex = null;
-      try {
-        const parsed = JSON.parse(cleanContent);
-        suggestedIndex = Number(parsed?.pitIndex);
-      } catch (_error) {
-        const matchedNumber = cleanContent.match(/\d+/);
-        suggestedIndex = matchedNumber ? Number(matchedNumber[0]) : null;
-      }
+      const suggestedIndex = Number(data?.pitIndex);
 
       if (!Number.isInteger(suggestedIndex)) {
         return null;
@@ -274,8 +239,8 @@ const MancalaGame = () => {
       setInfoMessage(`${playerNames.player2} esta pensando...`);
 
       const boardSnapshot = [...board];
-      const groqMove = await getGroqMove(boardSnapshot);
-      const selectedPit = groqMove ?? selectFallbackAIMove(boardSnapshot);
+      const aiMove = await getAIMoveFromBackend(boardSnapshot);
+      const selectedPit = aiMove ?? selectFallbackAIMove(boardSnapshot);
 
       if (cancelled) {
         return;
@@ -358,14 +323,9 @@ const MancalaGame = () => {
     setStarted(true);
     setCurrentPlayer(firstPlayer);
 
-    if (!process.env.EXPO_PUBLIC_GROQ_API_KEY) {
-      setInfoMessage(
-        `${humanName}, modo solo iniciado. Chave da Groq ausente; a IA usara estrategia local de fallback.`
-      );
-      return;
-    }
-
-    setInfoMessage(`${humanName}, modo solo iniciado. ${names[`player${firstPlayer}`]} comeca.`);
+    setInfoMessage(
+      `${humanName}, modo solo iniciado. Se o backend de IA estiver indisponivel, o jogo usa estrategia local de fallback.`
+    );
   };
 
   const gameStatus = useMemo(() => {
@@ -452,7 +412,7 @@ const MancalaGame = () => {
                   </View>
 
                   <Text style={styles.startupNote}>
-                    Para IA Groq, defina EXPO_PUBLIC_GROQ_API_KEY no ambiente.
+                    Configure EXPO_PUBLIC_AI_API_URL e inicie o backend de IA para usar Groq sem expor chave no app.
                   </Text>
 
                   <View style={styles.rulesPanel}>

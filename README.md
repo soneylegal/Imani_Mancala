@@ -23,29 +23,46 @@ Refatoracao do projeto Mancala para uma base React Native usando Expo.
 npm install
 ```
 
-2. Inicie o projeto:
+2. Instale as dependencias do backend de IA:
 
 ```bash
-npm start
+npm --prefix backend install
+```
+
+3. Inicie tudo junto (backend + app) em um unico comando:
+
+```bash
+npm run dev
 ```
 
 ## Modo solo com Groq
 
 - Na tela inicial, use o botao `Jogar sozinho` para jogar contra a IA.
-- Defina a chave da API da Groq pela variavel de ambiente `EXPO_PUBLIC_GROQ_API_KEY`.
-- Sem essa chave, o jogo continua em modo solo usando uma estrategia local de fallback.
+- O app chama um backend local (`/api/ai/move`) e esse backend consulta a Groq.
+- Sem backend/chave valida, o jogo continua em modo solo usando uma estrategia local de fallback.
 
 Exemplo de configuracao no PowerShell (sessao atual):
 
 ```powershell
-$env:EXPO_PUBLIC_GROQ_API_KEY = "sua_chave_aqui"
-npm start
+$env:EXPO_PUBLIC_AI_API_URL = "http://localhost:8787"
+npm run dev
+```
+
+Arquivo de ambiente do backend (`backend/.env`):
+
+```properties
+PORT=8787
+GROQ_API_KEY=sua_chave_groq_aqui
+GROQ_MODEL=llama-3.1-8b-instant
+CORS_ORIGIN=*
 ```
 
 ## Scripts
 
 ```bash
+npm run dev      # Backend + Expo juntos (recomendado)
 npm start        # Expo dev server
+npm run server   # Apenas backend IA
 npm run android  # Abre no Android
 npm run ios      # Abre no iOS (macOS)
 npm run web      # Abre no navegador via react-native-web
@@ -57,6 +74,10 @@ npm run web      # Abre no navegador via react-native-web
 .
 ├── App.jsx
 ├── app.json
+├── backend
+│   ├── .env.example
+│   ├── package.json
+│   └── server.js
 ├── package.json
 └── src
     ├── MancalaGame.jsx

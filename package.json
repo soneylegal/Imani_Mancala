@@ -4,10 +4,15 @@
   "version": "1.0.0",
   "main": "expo/AppEntry",
   "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm start\"",
     "start": "expo start",
+    "server": "npm --prefix backend run dev",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   },
   "dependencies": {
     "expo": "^55.0.17",
